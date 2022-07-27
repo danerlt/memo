@@ -1,6 +1,12 @@
 #IMAGE=http://harbor.google.com/python/python:V1
+|^IMAGE=http://harbor.google.com/python/python:V3|IMAGE=http://harbor.google.com/python/python:V4|g
 # IMAGE=http://harbor.google.com/python/python:V2
+|^IMAGE=http://harbor.google.com/python/python:V3|IMAGE=http://harbor.google.com/python/python:V4|g
 #IMAGE=http://harbor.google.com/python/python:V3
+|^IMAGE=http://harbor.google.com/python/python:V3|IMAGE=http://harbor.google.com/python/python:V4|g
 IMAGE=http://harbor.google.com/python/python:V4
+|^IMAGE=http://harbor.google.com/python/python:V3|IMAGE=http://harbor.google.com/python/python:V4|g
 
+|^IMAGE=http://harbor.google.com/python/python:V3|IMAGE=http://harbor.google.com/python/python:V4|g
 
+|^IMAGE=http://harbor.google.com/python/python:V3|IMAGE=http://harbor.google.com/python/python:V4|g
