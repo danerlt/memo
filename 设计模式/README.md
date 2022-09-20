@@ -37,6 +37,17 @@
 创造型模式有5种.
 
 ### 工厂方法(Factory Method)
+>Define an interface for creating an object, it through the argument to decide which class
+to instantiate.
+定义一个创建对象（ 实例化对象） 的接口，通过参数来决定创建哪个类的实例。
+
+示例
+```python
+
+class Animal(object):
+    def eat(self):
+        pass
+```
 
 ### 抽象工厂(Abstract Factory)
 
@@ -149,6 +160,20 @@ Apscheduler库中的event处理就借鉴了这种思想.
 ### 状态(State)
 
 ### 策略(Strategy)
+
+策略模式的核心思想是：对算法、规则进行封装，使得替换算法和新增算法更加灵活。
+
+设计要点
+策略模式中主要有三个角色，在设计策略模式时要找到并区分这些角色。
+
+- 上下文环境（Context）： 起着承上启下的封装作用，屏蔽上层应用对策略（算法） 的
+直接访问，封装可能存在的变化。
+- 策略的抽象（Strategy）： 策略（算法） 的抽象类，定义统一的接口，规定每个子类必
+须实现的方法。
+- 具备的策略： 策略的具体实现者，可以有多个不同的（算法或规则） 实现。
+
+例如tenacity库wait.py中的实现
+![tenacity](.\images\tenacity.png)
 
 ### 模板方法(Template Method)
 
