@@ -9,7 +9,8 @@
 import os
 import opencc
 
-converter = opencc.OpenCC('s2t.json')
+# 繁体转简体
+converter = opencc.OpenCC('t2s.json')
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 wubi_98_path = os.path.join(current_dir, "98.txt")
@@ -34,14 +35,14 @@ def read_map_table(path):
         return result
 
 
-def is_simplified_chinese(word):
-    """是否是简体字
+def is_traditional_chinese(word):
+    """是否是繁体字
     :param word: 单字
-    :return True: 是简体字 False：是繁体字
+    :return True: ：是繁体字 False：是简体字
     """
-    # converter.convert(word) 表示简体字转成繁体字 
-    # 繁体字 调用这个之后还是繁体字
-    return word != converter.convert(word)
+    # converter.convert(word) 表示繁体字转成简体字
+    # 繁体字 调用这个之后变成简体字
+    return word == converter.convert(word)
 
 
 def statistics(map, map_type="98五笔"):
@@ -64,10 +65,10 @@ def statistics(map, map_type="98五笔"):
         code_len = len(code)
         if word_len == 1:
             single_word.append(word)
-            if is_simplified_chinese(word):
-                simplified_chinese_word.append(word)
-            else:
+            if is_traditional_chinese(word):
                 traditional_chinese_word.append(word)
+            else:
+                simplified_chinese_word.append(word)
         elif word_len == 2:
             two_word_phrase.append(word)
         elif word_len == 3:
