@@ -3,7 +3,7 @@
 """
 @file: analyze.py 
 @time: 2022-10-06
-@desc: 分析98五笔
+@desc: 分析五笔和小鹤音形
 """
 
 import os
@@ -15,6 +15,36 @@ converter = opencc.OpenCC('t2s.json')
 current_dir = os.path.dirname(os.path.abspath(__file__))
 wubi_98_path = os.path.join(current_dir, "98.txt")
 wubi_86_path = os.path.join(current_dir, "86.txt")
+
+xiaohe_path = os.path.join(current_dir, "xiaohe.txt")
+xiaohe_convert_path = os.path.join(current_dir, "xiaohe_convert.txt")
+
+
+def convert_xiaohe():
+    result = {}
+    with open(xiaohe_path, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+        for line in lines:
+            line = line.strip()
+            if line:
+                try:
+                    word, code = line.split("\t")
+                except Exception as e:
+                    print(line)
+                if len(code) < 4:
+                    code += "_"
+
+                i = 1
+                temp_code = code
+                while temp_code in result:
+                    i += 1
+                    temp_code = code + str(i)
+                code = temp_code
+                result[code] = word
+
+    with open(xiaohe_convert_path, "w", encoding="utf-8") as f2:
+        for code, word in result.items():
+            f2.write(f"{word}\t{code}\n")
 
 
 def read_map_table(path):
@@ -114,8 +144,11 @@ def statistics(map, map_type="98五笔"):
 
 
 def main():
+    convert_xiaohe()
+    map_xiaohe = read_map_table(xiaohe_convert_path)
     map_98 = read_map_table(wubi_98_path)
     map_86 = read_map_table(wubi_86_path)
+    statistics(map_xiaohe, map_type="小鹤音形")
     statistics(map_98, map_type="98五笔")
     statistics(map_86, map_type="86五笔")
 

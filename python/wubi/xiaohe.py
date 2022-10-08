@@ -29,8 +29,8 @@ def convert_xiaohe():
                 i = 1
                 temp_code = code
                 while temp_code in result:
-                    temp_code = code + str(i)
                     i += 1
+                    temp_code = code + str(i)
                 code = temp_code
                 result[code] = word
 
