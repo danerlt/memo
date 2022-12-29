@@ -12,8 +12,10 @@ import time
 from threading import Thread
 
 
-d    time.sleep(1)dd
+def foo():
+    time.sleep(1)
     now = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:dddd%S")
+    t = threading.current_thread()
     print(f"time: {now} 模拟IO请求, pid: {os.getpid()}, thread_id: {t.ident}")
 
 
