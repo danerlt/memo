@@ -17,3 +17,8 @@ app = Flask(flask_name)
 @app.route("/", methods=["GET"])
 def index():
     return "This is index"
+
+
+@app.route('/health')
+def health():
+    return "health"
