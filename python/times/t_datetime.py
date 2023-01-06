@@ -1,10 +1,10 @@
 #!/usr/bin/env python  
 # -*- coding:utf-8 -*-  
 """ 
-@author: litao 
+@author: danerlt 
 @file: t_datetime.py 
 @time: 2022-10-14
-@contact: Tao.Li67@geely.com
+@contact: danerlt001@gmail.com
 @desc: 时期时间相关
 """
 
