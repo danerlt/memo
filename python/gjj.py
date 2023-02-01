@@ -25,9 +25,9 @@ def calculate(balance=0, month_pay=0, month_money=0):
 
 
 def main():
-    balance = 63334.89
+    balance = 65994.89
     # 月供
-    month_pay = 4740
+    month_pay = 4706
     # 每月缴纳公积金
     month_money = 2660
     calculate(balance=balance, month_pay=month_pay, month_money=month_money)
