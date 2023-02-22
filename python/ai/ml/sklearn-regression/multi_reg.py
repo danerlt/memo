@@ -16,7 +16,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from sklearn import linear_model
 from sklearn.linear_model import LinearRegression
-from sklearn.model_selection import train_test_split
 
 
 class ExponentialRegression(LinearRegression):
@@ -47,11 +46,11 @@ class LogarithmRegression(LinearRegression):
         return y
 
 
-def linear_function(x):
+def linear_function(x1, x2, x3, x4):
     """线性回归函数
     y = a * x + b
     """
-    y = 3 * x + 5 + random.randint(0, 5)
+    y = 3 * x1 + 2 * x2 + 4 * x3 + 5 * x4 + 100
     return y
 
 
@@ -59,7 +58,7 @@ def exponetial_function(x):
     """指数回归函数
     y = a * (e ** (b * x))
     """
-    y = 124 * (math.e ** (0.15 * x)) + random.randint(0, 5)
+    y = 124 * (math.e ** (0.15 * x))
     return y
 
 
@@ -67,18 +66,49 @@ def logarithm_function(x):
     """对数回归函数
     y = a * ln(x) + b
     """
-    y = 4.5 * math.log(x) + 15 + random.randint(0, 2)
+    y = 4.5 * math.log(x) + 300
     return y
 
 
 def get_data(func):
-    x_list = np.linspace(1, 100, 50)
-    train_data = np.array([[x, func(x)] for x in x_list], dtype=float)
-    x2_list = np.linspace(1, 150, 50) + 0.5 * np.random.random(50)
-    test_data = np.array([[x, func(x)] for x in x2_list], dtype=float)
-    x_train, y_train = train_data[:, :1], train_data[:, 1]
-    x_test, y_test = test_data[:, :1], test_data[:, 1]
-    return np.sort(x_train), np.sort(y_train), np.sort(x_test), np.sort(y_test)
+    x1_list = np.linspace(1, 100, 500)
+    x2_list = np.linspace(1, 100, 500) + 0.1 * np.random.random(500)
+    x3_list = np.linspace(1, 100, 500) + 0.2 * np.random.random(500)
+    x4_list = np.linspace(1, 100, 500) + 0.3 * np.random.random(500)
+
+    length = len(x1_list)
+    train_data = []
+    for i in range(length):
+        x1 = x1_list[i]
+        x2 = x2_list[i]
+        x3 = x3_list[i]
+        x4 = x4_list[i]
+        y = func(x1, x2, x3, x4) + random.randint(0, 10)
+        row = [x1, x2, x3, x4, y]
+        train_data.append(row)
+
+    train_data = np.array(train_data, dtype=float)
+
+    x1_list = np.linspace(100, 200, 50) + 0.4 * np.random.random(50)
+    x2_list = np.linspace(100, 200, 50) + 0.7 * np.random.random(50)
+    x3_list = np.linspace(100, 200, 50) + 0.8 * np.random.random(50)
+    x4_list = np.linspace(100, 200, 50) + 0.9 * np.random.random(50)
+    length = len(x1_list)
+    test_data = []
+    for i in range(length):
+        x1 = x1_list[i]
+        x2 = x2_list[i]
+        x3 = x3_list[i]
+        x4 = x4_list[i]
+        y = func(x1, x2, x3, x4)
+        row = [x1, x2, x3, x4, y]
+        test_data.append(row)
+
+    test_data = np.array(test_data, dtype=float)
+
+    x_train, y_train = train_data[:, :4], train_data[:, 4]
+    x_test, y_test = test_data[:, :4], test_data[:, 4]
+    return x_train, y_train, x_test, y_test
 
 
 def train(model, func):
@@ -96,11 +126,8 @@ def train(model, func):
 
     # 画图
     plt.figure(figsize=(10, 10))
-    plt.xlabel('x', fontdict={'size': 16})
-    plt.ylabel('y', fontdict={'size': 16}, rotation=0)
-    plt.plot(x_train, y_train, 'yo-', label='train data')
-    plt.plot(x_test, y_test, 'go-', label='true data')
-    plt.plot(x_test, y_predict, 'ro-', label='predict data')
+    plt.plot(np.arange(len(y_test)), y_test, 'go-', label='true data')
+    plt.plot(np.arange(len(y_predict)), y_predict, 'ro-', label='predict data')
     plt.title('score: %f' % score)
     plt.legend()
     plt.show()
@@ -109,8 +136,8 @@ def train(model, func):
 def main():
     maps = [
         (linear_model.LinearRegression(), linear_function),  # 线性回归
-        (ExponentialRegression(), exponetial_function),  # 指数回归
-        (LogarithmRegression(), logarithm_function)  # 对数回归
+        # (ExponentialRegression(), exponetial_function),  # 指数回归
+        # (LogarithmRegression(), logarithm_function)  # 对数回归
     ]
     for model, func in maps:
         train(model, func)

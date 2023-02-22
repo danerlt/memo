@@ -13,9 +13,7 @@ import random
 
 import matplotlib.pyplot as plt
 import numpy as np
-from sklearn import linear_model
 from sklearn.base import RegressorMixin
-from sklearn.linear_model import LinearRegression
 from sklearn.model_selection import train_test_split
 
 
@@ -62,26 +60,12 @@ class MyExponentialRegression(RegressorMixin):
         self.expression = ""
 
     def fit(self, X, y):
-        sumX = np.sum(X)
         sumY = np.sum(y)
         sumXXY = np.sum(X * X * y)
         sumYlny = np.sum(y * np.log(y))
         sumXYlny = np.sum(X * y * np.log(y))
         sumXY = np.sum(X * y)
-        length = len(X)
-
-        # for i in range(length):
-        #     x_i = X[i]
-        #     y_i = y[i]
-        #     sumX += x_i
-        #     sumY += y_i
-        #     sumXY += x_i * y_i
-        #     sumXXY += x_i * x_i * y_i
-        #     sumYlny += y_i * math.log(y_i)
-        #     sumXYlny += x_i * y_i * math.log(y_i)
-
         denominator = (sumY * sumXXY) - (sumXY * sumXY)
-
         self.a = math.exp((sumXXY * sumYlny - sumXY * sumXYlny) / denominator)
         self.b = (sumY * sumXYlny - sumXY * sumYlny) / denominator
         self.expression = f'y = {round(self.a * 100) / 100} * e^{round(self.b * 100) / 100}x'
@@ -113,14 +97,6 @@ class MyLogarithmRegression(RegressorMixin):
         sumY = np.sum(y)
         sumlnxlnx = np.sum(np.log(X) * np.log(X))
         length = len(X)
-        # for i in range(length):
-        #     x_i = X[i]
-        #     y_i = y[i]
-        #     sumlnx += math.log(x_i)
-        #     sumYlnx += y_i * math.log(x_i)
-        #     sumY += y_i
-        #     sumlnxlnx += math.pow(math.log(x_i), 2)
-
         self.a = (length * sumYlnx - sumY * sumlnx) / (length * sumlnxlnx - sumlnx * sumlnx)
         self.b = (sumY - self.a * sumlnx) / length
         self.expression = f'y = {round(self.a * 100) / 100} * ln(x) + {round(self.b * 100) / 100}'
@@ -162,7 +138,7 @@ def logarithm_function(x):
 def get_data(func):
     x_list = np.linspace(1, 120, 50)
     data = np.array([[x, func(x) + random.randint(0, 5)] for x in x_list], dtype=float)
-    train_data, test_data = train_test_split(data, test_size=0.2)
+    train_data, test_data = train_test_split(data, test_size=0.3)
     x_train, y_train = train_data[:, 0], train_data[:, 1]
     x_test, y_test = test_data[:, 0], test_data[:, 1]
     return np.sort(x_train), np.sort(y_train), np.sort(x_test), np.sort(y_test)
@@ -186,7 +162,7 @@ def train(model, func):
     plt.xlabel('x', fontdict={'size': 16})
     plt.ylabel('y', fontdict={'size': 16}, rotation=0)
     plt.plot(x_train, y_train, 'yo-', label='train data')
-    plt.plot(x_test, y_test, 'go-', label='true data')
+    # plt.plot(x_test, y_test, 'go-', label='true data')
     plt.plot(x_test, y_predict, 'ro-', label='predict data')
     plt.title('score: %f' % score)
     plt.legend()
