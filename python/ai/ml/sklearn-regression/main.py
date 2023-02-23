@@ -96,12 +96,12 @@ def train(model, func):
 
     # 画图
     plt.figure(figsize=(10, 10))
-    plt.xlabel('x', fontdict={'size': 16})
-    plt.ylabel('y', fontdict={'size': 16}, rotation=0)
-    plt.plot(x_train, y_train, 'yo-', label='train data')
-    plt.plot(x_test, y_test, 'go-', label='true data')
-    plt.plot(x_test, y_predict, 'ro-', label='predict data')
-    plt.title('score: %f' % score)
+    plt.xlabel("x", fontdict={"size": 16})
+    plt.ylabel("y", fontdict={"size": 16}, rotation=0)
+    # plt.scatter(x_train, y_train, color="black", label="train data")
+    plt.scatter(x_test, y_test, color="red", label="true data")
+    plt.plot(x_test, y_predict, color="blue", label="predict data")
+    plt.title("score: %f" % score)
     plt.legend()
     plt.show()
 

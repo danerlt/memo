@@ -68,7 +68,7 @@ class MyExponentialRegression(RegressorMixin):
         denominator = (sumY * sumXXY) - (sumXY * sumXY)
         self.a = math.exp((sumXXY * sumYlny - sumXY * sumXYlny) / denominator)
         self.b = (sumY * sumXYlny - sumXY * sumYlny) / denominator
-        self.expression = f'y = {round(self.a * 100) / 100} * e^{round(self.b * 100) / 100}x'
+        self.expression = f"y = {round(self.a * 100) / 100} * e^{round(self.b * 100) / 100}x"
         print(f"MyExponentialRegression expression: {self.expression}")
 
     def predict(self, X):
@@ -99,7 +99,7 @@ class MyLogarithmRegression(RegressorMixin):
         length = len(X)
         self.a = (length * sumYlnx - sumY * sumlnx) / (length * sumlnxlnx - sumlnx * sumlnx)
         self.b = (sumY - self.a * sumlnx) / length
-        self.expression = f'y = {round(self.a * 100) / 100} * ln(x) + {round(self.b * 100) / 100}'
+        self.expression = f"y = {round(self.a * 100) / 100} * ln(x) + {round(self.b * 100) / 100}"
         print(f"MyLogarithmRegression expression: {self.expression}")
 
     def predict(self, X):
@@ -159,12 +159,12 @@ def train(model, func):
 
     # 画图
     plt.figure(figsize=(10, 10))
-    plt.xlabel('x', fontdict={'size': 16})
-    plt.ylabel('y', fontdict={'size': 16}, rotation=0)
-    plt.plot(x_train, y_train, 'yo-', label='train data')
-    # plt.plot(x_test, y_test, 'go-', label='true data')
-    plt.plot(x_test, y_predict, 'ro-', label='predict data')
-    plt.title('score: %f' % score)
+    plt.xlabel("x", fontdict={"size": 16})
+    plt.ylabel("y", fontdict={"size": 16}, rotation=0)
+    # plt.scatter(x_train, y_train, color="black", label="train data")
+    plt.scatter(x_test, y_test, color="red", label="true data")
+    plt.plot(x_test, y_predict, color="blue", label="predict data")
+    plt.title("score: %f" % score)
     plt.legend()
     plt.show()
 
@@ -179,5 +179,5 @@ def main():
         train(model, func)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
