@@ -2,7 +2,7 @@
 # -*- coding:utf-8 -*-  
 """ 
 @author: danerlt 
-@file: mult_thread_save.py 
+@file: multi_thread_save.py
 @time: 2023-04-24
 @contact: danerlt001@gmail.com
 @desc: 多线程批量写入数据库样例
@@ -15,6 +15,7 @@ from multiprocessing.dummy import Pool
 
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import QueuePool
 
 from config import mysql_config
 
@@ -22,13 +23,24 @@ from logutil import creater_logger
 
 logger = creater_logger()
 
+# # 连接池的配置
+POOL_SIZE = 64  # 定义池中连接数的上限
+MAX_OVERFLOW = 10  # 定义池外可以使用的连接数的上限
 engine = create_engine(mysql_config.get_uri(),
-                       pool_size=30,
-                       max_overflow=0,
+                       poolclass=QueuePool,
+                       pool_size=POOL_SIZE,
+                       max_overflow=MAX_OVERFLOW,
                        pool_timeout=30,
                        pool_recycle=-1
                        )
+
 Session = sessionmaker(bind=engine)
+
+# 预处理SQL 这个不需要在生成数据的循环中多次执行, 只需要执行一次就可以了
+sql = text("""
+         INSERT INTO table1 (id, name)
+         VALUES (:table_id, :name)
+     """)
 
 
 def timer(func):
@@ -52,8 +64,6 @@ def save_db(session, data_list: list):
         for data in data_list:
             sql = data["sql"]
             sql_data = data["sql_data"]
-            sql_2 = data["sql_2"]
-            data_2 = data["data_2"]
 
             res = session.execute(sql, sql_data)
             if res.rowcount > 0:
@@ -62,16 +72,6 @@ def save_db(session, data_list: list):
                 msg = "插入table1表失败"
                 logger.error(msg)
                 raise Exception(msg)
-
-            res = session.execute(sql_2, data_2)
-            if res.rowcount > 0:
-                logger.info("插入table2表成功")
-            else:
-                msg = "插入table2表成功"
-                logger.error(msg)
-                raise Exception(msg)
-
-        session.commit()
         logger.info("提交数据库事务成功")
     except Exception as e:
         logger.error(f"执行SQL失败, error:{e}")
@@ -83,42 +83,15 @@ def save_db(session, data_list: list):
 def get_save_db_list():
     """获取保存到数据库的数据"""
     logger.info("开始获取保存到数据库的数据")
-
     result = []
     for i in range(10):
         table_id = i + 1
         name = "tttt"
-
-        sql = text("""
-            INSERT INTO table1 (id, name)
-            VALUES (:table_id, :name)
-        """)
-        sql_data = {
+        item = {
             "id": table_id,
             "name": name,
-
-        }
-        sql_2 = text("""
-            INSERT INTO table2 (id2, name2)
-            VALUES (:table_id2, :name2)
-        """)
-        sql_2_data = []
-        for _ in range(3):
-            name2 = "xxxx"
-            row = {
-                "id2": table_id,
-                "name2": name2,
-            }
-            sql_2_data.append(row)
-
-        item = {
-            "sql": sql,
-            "data": sql_data,
-            "sql_2": sql_2,
-            "data_2": sql_2_data,
         }
         result.append(item)
-
     logger.info(f"获取保存到数据库的数据成功, 共有 {len(result)} 条数据")
     return result
 
@@ -131,15 +104,19 @@ def split_data(data, batch_size):
 
 def write_data_using_threads(data):
     """使用多线程插入数据"""
-    NUM_THREADS = 8  # 定义线程数量
+    NUM_THREADS = 64  # 定义线程数量
     BATCH_SIZE = 100  # 每个线程处理的数据大小
 
     # 将数据块进行拆分
     data_blocks = list(split_data(data, BATCH_SIZE))
 
+    # 使用这种方式,需要将 session = Session() 放到save_db中
     # 创建线程池
-    pool = Pool(NUM_THREADS)
+    # with Pool(NUM_THREADS) as pool:
+    #     # execute tasks asynchronously
+    #     pool.map(save_db, data_blocks)
 
+    pool = Pool(NUM_THREADS)
     # 在每个线程中执行数据插入操作
     for data_block in data_blocks:
         session = Session()
