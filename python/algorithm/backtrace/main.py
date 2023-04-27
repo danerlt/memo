@@ -33,17 +33,22 @@ def backtrack(路径, 选择列表):
 
 从根节点开始,
 1.第一层: 有4个选择,选择A, B, C , D的任意一个点, 假设是A,然后选择深度列表的第一个点a, 这两个点连线,
-  然后判断这个线段和路径列表中的线段是否有交叉,如果有交叉就跳过,如果没有交叉将这个线段加入路径列表,然后进入下一层
+  先判断连线的长度是否大于对角线的一半，如果大于就跳过,如果没有大于,再判断这个线段和路径列表中的线段是否有交叉,
+  如果有交叉就跳过,如果没有交叉将这个线段加入路径列表,然后进入下一层
 2.第二层: 有3个选择,选择B, C, D的任意一个点, 假设是B,然后选择深度列表的第二个点b, 这两个点连线,
-  然后判断这个线段和路径列表中的线段是否有交叉,如果有交叉就跳过,如果没有交叉将这个线段加入路径列表,然后进入下一层
+  先判断连线的长度是否大于对角线的一半，如果大于就跳过,如果没有大于,再判断这个线段和路径列表中的线段是否有交叉,
+  如果有交叉就跳过,如果没有交叉将这个线段加入路径列表,然后进入下一层
 3.第三层: 有2个选择,选择C, D的任意一个点, 假设是C,然后选择深度列表的第三个点c, 这两个点连线,
-  然后判断这个线段和路径列表中的线段是否有交叉,如果有交叉就跳过,如果没有交叉将这个线段加入路径列表,然后进入下一层
-4.第四层: 有1个选择,选择D点,然后选择深度列表的第四个点d, 这两个点连线,判断这个线段和路径列表中的线段是否有交叉,如果有交叉就跳过,
-  如果没有交叉将这个线段加入路径列表, 说明已经找到了一条解决方案,线段不交叉
+  先判断连线的长度是否大于对角线的一半，如果大于就跳过,如果没有大于,再判断这个线段和路径列表中的线段是否有交叉,
+  如果有交叉就跳过,如果没有交叉将这个线段加入路径列表,然后进入下一层
+4.第四层: 有1个选择,选择D点,然后选择深度列表的第四个点d, 这两个点连线,
+  先判断连线的长度是否大于对角线的一半，如果大于就跳过,如果没有大于,再判断这个线段和路径列表中的线段是否有交叉,
+  如果有交叉就跳过,如果没有交叉将这个线段加入路径列表, 说明已经找到了一条解决方案,线段不交叉
 
 
 """
 import copy
+import math
 import random
 import time
 
@@ -159,26 +164,48 @@ MAX_POINT = 16
 # 每组的数量
 GROUP_NUM = 3
 
+# x轴最大值
+max_x = 3
+# y轴最大值
+max_y = 3
+
+x_unit = max_x / 6
+y_unit = max_y / 6
+
+# 连线的最大长度，不能超过对角线的一半
+max_line_length = ((max_x ** 2 + max_y ** 2) ** 0.5) / 2
+
+# 每次回溯的最大时间 1 秒
+max_backtrace_time = 10
+
+#  16个点位图如下
+#  M  L  K  J  I
+#  N           H
+#  O           G
+#  P           F
+#  A  B  C  D  E
 # 所有的固定点位
-pa = Point(0, 0, name="Down_1")
-pb = Point(0.5, 0, name="Down_2")
-pc = Point(1.5, 0, name="Down_3")
-pd = Point(2.5, 0, name="Down_4")
+pa = Point(0, 0, name="A")
+pb = Point(1 * x_unit, 0, name="B")
+pc = Point(3 * x_unit, 0, name="C")
+pd = Point(5 * x_unit, 0, name="D")
 
-pe = Point(0, 0.5, name="Left_1")
-pf = Point(0, 1.5, name="Left_2")
-pg = Point(0, 2.5, name="Left_3")
-ph = Point(0, 3, name="Left_4")
+pe = Point(max_x, 0, name="E")
+pf = Point(max_x, 1 * y_unit, name="F")
+pg = Point(max_x, 3 * y_unit, name="G")
+ph = Point(max_x, 5 * y_unit, name="H")
 
-pi = Point(0.5, 3, name="Top_1")
-pj = Point(1.5, 3, name="Top_2")
-pk = Point(2.5, 3, name="Top_3")
-pl = Point(3, 3, name="Top_4")
+pi = Point(max_x, max_y, name="I")
+pj = Point(5 * x_unit, max_y, name="J")
+pk = Point(3 * x_unit, max_y, name="K")
+pl = Point(1 * x_unit, max_y, name="L")
 
-pm = Point(3, 0, name="Right_1")
-pn = Point(3, 0.5, name="Right_2")
-po = Point(3, 1.5, name="Right_3")
-pp = Point(3, 2.5, name="Right_4")
+pm = Point(0, 1 * y_unit, name="M")
+pn = Point(0, 5 * y_unit, name="N")
+po = Point(0, 3 * y_unit, name="O")
+pp = Point(0, y_unit, name="P")
+
+all_fix_points = [pa, pb, pc, pd, pe, pf, pg, ph, pi, pj, pk, pl, pm, pn, po, pp]
 
 # 找到一组解的标志
 find_path = False
@@ -198,8 +225,8 @@ def gen_random_points(point_num=MAX_POINT, repeat_num=0):
     name = 'a'
     # 生成不重复坐标
     for _ in range(point_num - repeat_num * 2):
-        x = round(random.uniform(0.5, 2.5), 1)
-        y = round(random.uniform(0.5, 2.5), 1)
+        x = round(random.uniform(0, max_x), 1)
+        y = round(random.uniform(0, max_y), 1)
         p = Point(x, y, name=str(name))
         name = chr(ord(name) + 1)
         points.append(p)
@@ -265,25 +292,24 @@ def gen_give_list(group_num=None):
 
     all_trace = []
     # 所有固定的点位
-    all_fix_points = [pa, pb, pc, pd, pe, pf, pg, ph, pi, pj, pk, pl, pm, pn, po, pp]
     # 所有可能的组合
     all_groups = [
         Group("group_1", [pa, pb, pc], pb),
         Group("group_2", [pb, pc, pd], pc),
-        Group("group_3", [pc, pd, pm], pd),
-        Group("group_4", [pd, pm, pn], pm),
-        Group("group_5", [pm, pn, po], pn),
-        Group("group_6", [pn, po, pp], po),
-        Group("group_7", [po, pp, pl], pp),
-        Group("group_8", [pp, pl, pk], pl),
-        Group("group_9", [pl, pk, pj], pk),
-        Group("group_10", [pk, pj, pi], pj),
-        Group("group_11", [pj, pi, ph], pi),
-        Group("group_12", [pi, ph, pg], ph),
-        Group("group_13", [ph, pg, pf], pg),
-        Group("group_14", [pg, pf, pe], pf),
-        Group("group_15", [pf, pe, pa], pe),
-        Group("group_16", [pe, pa, pc], pa),
+        Group("group_3", [pc, pd, pe], pd),
+        Group("group_4", [pd, pe, pf], pe),
+        Group("group_5", [pe, pf, pg], pf),
+        Group("group_6", [pf, pg, ph], pg),
+        Group("group_7", [pg, ph, pi], ph),
+        Group("group_8", [ph, pi, pj], pi),
+        Group("group_9", [pi, pj, pk], pj),
+        Group("group_10", [pj, pk, pl], pk),
+        Group("group_11", [pk, pl, pm], pl),
+        Group("group_12", [pl, pm, pn], pm),
+        Group("group_13", [pm, pn, po], pn),
+        Group("group_14", [pn, po, pp], po),
+        Group("group_15", [po, pp, pa], pp),
+        Group("group_16", [pp, pa, pb], pa),
     ]
 
     used = [False] * len(all_groups)
@@ -333,15 +359,26 @@ def show(lines):
 
 
 def show_point(points):
+    x_list = []
+    y_list = []
+    name_list = []
+
     for point in points:
-        x, y = point
-        plt.plot([x], [y], 'o')
+        x_list.append(point.x)
+        y_list.append(point.y)
+        name_list.append(point.name)
+
+    plt.scatter(x_list, y_list)
+    # 添加标签
+    for i, name in enumerate(name_list):
+        plt.annotate(name, (x_list[i], y_list[i]))
     # 展示图形
     plt.grid()
     plt.show()
 
 
 def backtrack(trace, used, depth,
+              start_time=None,
               random_points_length=None,
               give_points_length=None, random_points=None,
               give_points=None, group_names=None, result=None):
@@ -350,6 +387,9 @@ def backtrack(trace, used, depth,
     """
     global loop_num
     global find_path
+    now = time.time()
+    if now - start_time > 1:
+        return
     if find_path:
         return
     # 路径长度等于 n叉树的高度, 说明找到了一条路径
@@ -369,6 +409,11 @@ def backtrack(trace, used, depth,
         random_point = random_points[depth]  # 每层元素
         cur_line = (random_point, give_point)
 
+        # 判断当前线段是否超过最大长度
+        cur_line_length = ((random_point.x - give_point.x) ** 2 + (random_point.y - give_point.y) ** 2) ** 0.5
+        if cur_line_length > max_line_length:
+            continue
+
         # 判断是否有交叉
         if cross_utils.is_cross_lines(trace, cur_line):
             # 这里必须用continue, 不能用break, 因为这里是遍历所有的路径, 而不是遍历一条路径
@@ -379,6 +424,7 @@ def backtrack(trace, used, depth,
             used[idx] = True
             depth += 1
             backtrack(trace, used, depth=depth,
+                      start_time=start_time,
                       random_points_length=random_points_length,
                       give_points_length=give_points_length,
                       random_points=random_points,
@@ -394,6 +440,7 @@ def main_process(repeat_num, point_num):
     t0 = time.time()
     # repeat_num = 0
     random_points = gen_random_points(point_num=point_num, repeat_num=repeat_num)  # 每层元素
+    show_point(random_points)
     logger.debug(f"len(random_points) :{len(random_points)},random_points : {random_points}")
     random_points_length = len(random_points)
     give_list = gen_give_list(group_num=repeat_num)
@@ -401,17 +448,19 @@ def main_process(repeat_num, point_num):
     result = []
     temp_loop = 0
     for give_item in give_list:
+        start_time = time.time()
         if find_path:
             break
         one_give_group_names = give_item["group_names"]
         one_give_points = give_item["group_list"]
 
         temp_loop += 1
-        logger.debug(f"temp_loop: {temp_loop}, loop_num: {loop_num}, one_give_group_names: {one_give_group_names}")
+        logger.info(f"temp_loop: {temp_loop}, loop_num: {loop_num}, one_give_group_names: {one_give_group_names}")
         trace = []
         used = [False] * len(one_give_points)
         give_points_length = len(one_give_points)
         backtrack(trace, used, depth=0,
+                  start_time=start_time,
                   random_points_length=random_points_length,
                   give_points_length=give_points_length,
                   random_points=random_points,
@@ -431,8 +480,9 @@ def main_process(repeat_num, point_num):
 
 
 def main():
+    # show_point(all_fix_points)
     # 重复组数
-    repeat_num = 1
+    repeat_num = 0
     # 数据点数
     point_num = 16
     main_process(repeat_num, point_num)
