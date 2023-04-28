@@ -381,13 +381,37 @@ def show_point(points):
     plt.show()
 
 
-def backtrack(trace, used, depth,
-              start_time=None,
+def backtrack(trace,
+              depth=None,
+              used_points=None,
+              used_groups=None,
+              repeat_num=None,
+              random_points=None,
               random_points_length=None,
-              give_points_length=None, random_points=None,
-              give_points=None, group_names=None, result=None):
+              select_points=None,
+              select_points_length=None,
+              select_groups=None,
+              group_index=None,
+              select_groups_length=None,
+              start_time=None,
+              result=None):
     """回溯
-    # 做判断
+
+    :param trace: 从根节点到叶子节点的一条路径 当trace的长度等于n叉树的高度时, 说明找到了一条路径
+    :param used_points: 用来记录路径中的点是否被使用过
+    :param used_groups: 用来记录路径中的组合是否被使用过
+    :param depth: 当前深度
+    :param repeat_num: 重复次数
+    :param random_points: 随机点位
+    :param random_points_length: 随机点位长度
+    :param select_points: 选择点位
+    :param select_points_length: 选择点位长度
+    :param select_groups: 选择组合
+    :param select_groups_length: 选择组合长度
+    :param group_index: 组合索引
+    :param start_time: 开始时间
+    :param result: 结果
+    :return:
     """
     global loop_num
     global find_path
@@ -447,30 +471,31 @@ def main_process(repeat_num, point_num):
     show_point(random_points)
     logger.debug(f"len(random_points) :{len(random_points)},random_points : {random_points}")
     random_points_length = len(random_points)
-    give_list = gen_give_list(group_num=repeat_num)
 
     result = []
-    temp_loop = 0
-    for give_item in give_list:
-        start_time = time.time()
-        if find_path:
-            break
-        one_give_group_names = give_item["group_names"]
-        one_give_points = give_item["group_list"]
 
-        temp_loop += 1
-        logger.info(f"temp_loop: {temp_loop}, loop_num: {loop_num}, one_give_group_names: {one_give_group_names}")
-        trace = []
-        used = [False] * len(one_give_points)
-        give_points_length = len(one_give_points)
-        backtrack(trace, used, depth=0,
-                  start_time=start_time,
-                  random_points_length=random_points_length,
-                  give_points_length=give_points_length,
-                  random_points=random_points,
-                  give_points=one_give_points,
-                  group_names=one_give_group_names,
-                  result=result)
+    used_points = [False] * len(all_fix_points)
+    used_groups = [False] * len(all_groups)
+    select_points_length = len(all_fix_points)
+    select_groups_length = len(all_groups)
+    trace = []
+    start_time = time.time()
+    group_index = 0
+    backtrack(trace,
+              depth=0,
+              used_points=used_points,
+              used_groups=used_groups,
+              repeat_num=repeat_num,
+              random_points=random_points,
+              random_points_length=random_points_length,
+              select_points=all_fix_points,
+              select_points_length=select_points_length,
+              select_groups=all_groups,
+              group_index=group_index,
+              select_groups_length=select_groups_length,
+              start_time=start_time,
+              result=result
+              )
 
     t1 = time.time()
     cost_time = round(t1 - t0, 2)
@@ -494,3 +519,11 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+
+
+
+
+
+
