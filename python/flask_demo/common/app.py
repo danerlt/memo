@@ -83,7 +83,7 @@ def after_request(response):
         ignore_urls = []
         for ignore_url in ignore_urls:
             if ignore_url in url:
-                return
+                return response
 
         method = request.method
         params = request.args
