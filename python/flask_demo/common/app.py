@@ -8,7 +8,13 @@
 @desc: 
 """
 
-from flask import Flask
+import json
+import logging
+import datetime
+
+from flask import Flask, request, jsonify
+
+logger = logging.getLogger("api")
 
 flask_name = "flask_demo"
 app = Flask(flask_name)
@@ -23,17 +29,6 @@ def index():
 def health():
     return "health"
 
-import json
-import logging
-import datetime
-
-from flask import Flask, request, jsonify
-
-app = Flask(__name__)
-
-logger = logging.getLogger("api")
-
-
 
 @app.before_request
 def before_request():
@@ -41,6 +36,8 @@ def before_request():
     """
     try:
         url = request.path
+        has_params = False
+        has_data = False
 
         # 忽略部分URL
         ignore_urls = []
@@ -51,11 +48,24 @@ def before_request():
         method = request.method
         params = request.args
         data = request.data
-        try:
-            data = json.loads(data)
-        except Exception as e:
-            pass
-        logger.info(f"开始HTTP {method} 请求, url: {url}, params: {params}, data: {data}")
+        if params:
+            has_params = True
+            params = dict(params)
+        if data:
+            has_data = True
+            try:
+                data = json.loads(data)
+            except Exception as e:
+                pass
+
+        if has_params and has_data:
+            logger.info(f"开始HTTP {method} 请求, url: {url}, params: {params}, data: {data}")
+        elif has_data:
+            logger.info(f"开始HTTP {method} 请求, url: {url}, data: {data}")
+        elif has_params:
+            logger.info(f"开始HTTP {method} 请求, url: {url}, params: {params}")
+        else:
+            logger.info(f"开始HTTP {method} 请求, url: {url}")
     except Exception as e:
         logger.warning(f"before_request error: {str(e)}")
 
@@ -66,6 +76,8 @@ def after_request(response):
     """
     try:
         url = request.path
+        has_params = False
+        has_data = False
 
         # 忽略部分URL
         ignore_urls = []
@@ -76,10 +88,15 @@ def after_request(response):
         method = request.method
         params = request.args
         data = request.data
-        try:
-            data = json.loads(data)
-        except Exception as e:
-            pass
+        if params:
+            has_params = True
+            params = dict(params)
+        if data:
+            has_data = True
+            try:
+                data = json.loads(data)
+            except Exception as e:
+                pass
 
         # xss 漏洞 转义
         try:
@@ -93,10 +110,16 @@ def after_request(response):
                 if pass_error in msg:
                     msg = "数据库执行SQL出错"
 
-            logger.info(f"结束HTTP {method} 请求, url: {url}, params: {params}, data: {data},响应结果：{res_data}")
+            if has_params and has_data:
+                logger.info(f"结束HTTP {method} 请求, url: {url}, params: {params}, data: {data}, 响应结果：{res_data}")
+            elif has_data:
+                logger.info(f"结束HTTP {method} 请求, url: {url}, data: {data}, 响应结果：{res_data}")
+            elif has_params:
+                logger.info(f"结束HTTP {method} 请求, url: {url}, params: {params}, 响应结果：{res_data}")
+            else:
+                logger.info(f"结束HTTP {method} 请求, url: {url}, 响应结果：{res_data}")
         except Exception as err:
-            logger.warning(f"after_request msg处理error: {str(err)}")
-            logger.info(f"结束HTTP {method} 请求, url: {url}, params: {params}, data: {data},响应结果：{response}")
+            logger.info(f"结束HTTP {method} 请求, url: {url}, params: {params}, data: {data}, 响应结果：{response}")
     except Exception as e:
         logger.warning(f"after_request error: {str(e)}")
     return response
