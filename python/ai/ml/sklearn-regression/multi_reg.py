@@ -4,7 +4,7 @@
 @author: danerlt
 @file: regression.py
 @time: 2023-02-20
-@contact: danerlt001@geely.com
+@contact: danerlt001@gmail.com
 @desc: 回归算法样例
 
 """
