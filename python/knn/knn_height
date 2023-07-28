@@ -1,0 +1,50 @@
+import numpy as np
+from sklearn.neighbors import KNeighborsClassifier
+from skl2onnx import convert_sklearn
+from skl2onnx.common.data_types import FloatTensorType
+from loguru import logger
+import time
+import onnxruntime
+
+# 训练一个示例KNN模型
+X_train = np.array([[165, 60], [170, 68], [155, 45], [180, 90], [175, 70], [160, 50]])
+y_train = np.array(['女性', '女性', '女性', '男性', '男性', '女性'])
+model = KNeighborsClassifier(n_neighbors=3)
+model.fit(X_train, y_train)
+
+# 将scikit-learn模型转换为ONNX格式
+initial_type = [('float_input', FloatTensorType([None, X_train.shape[1]]))]
+onnx_model = convert_sklearn(model, initial_types=initial_type)
+
+# 保存ONNX模型到文件
+onnx_path = 'knn_model.onnx'
+with open(onnx_path, 'wb') as f:
+    f.write(onnx_model.SerializeToString())
+
+# 加载ONNX模型
+ort_session = onnxruntime.InferenceSession('knn_model.onnx')
+
+# 准备输入数据（示例数据）
+input_data = np.array([[168, 65]], dtype=np.float32)
+
+# 默认模型的预测时间
+start_time = time.perf_counter()
+predicted_label_default = model.predict(input_data)
+end_time = time.perf_counter()
+execution_time_default = end_time - start_time
+
+# ONNX模型的预测时间
+start_time = time.perf_counter()
+outputs = ort_session.run(None, {'float_input': input_data})
+predicted_label_onnx = outputs[0]
+end_time = time.perf_counter()
+execution_time_onnx = end_time - start_time
+
+# 日志记录预测时间到文件
+logger.add("knn_height.log", format="{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}")
+
+logger.info(f"默认模型预测时间：{execution_time_default} 秒")
+logger.info(f"ONNX模型预测时间：{execution_time_onnx} 秒")
+
+# 2023-07-28 17:10:22.570 | INFO     | __main__:<module>:46 - 默认模型预测时间：0.0023429000000003697 秒
+# 2023-07-28 17:10:22.571 | INFO     | __main__:<module>:47 - ONNX模型预测时间：0.0005816999999996852 秒
