@@ -13,7 +13,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import DistributedSampler, DataLoader
+from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
 from loguru import logger
@@ -104,9 +104,12 @@ def test(device, model, test_loader=None):
         for data, target in test_loader:
             data, target = data.to(device), target.to(device)
             output = model(data)
+            logger.debug(f"output type: {type(output)}, shape: {output.shape}, output: {output}")
             test_loss += F.nll_loss(output, target, reduction='sum').item()  # 将一批的损失相加
             pred = output.max(1, keepdim=True)[1]  # 找到概率最大的下标
+            logger.debug(f"pred type: {type(pred)}, shape: {pred.shape}, pred: {pred}")
             correct += pred.eq(target.view_as(pred)).sum().item()
+            logger.debug(f"correct type: {type(correct)}, correct: {correct}")
 
     loss = test_loss / len(test_loader.dataset)
     acc = 100. * correct / len(test_loader.dataset)
