@@ -11,7 +11,7 @@ from flask import jsonify
 
 from common.app import app
 
-from uitls.logutil import creater_logger
+from uitls.logutil import creater_lpogger
 from service.service_demo import demo_service
 
 logger = creater_logger("api")
