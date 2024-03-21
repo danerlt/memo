@@ -1,4 +1,5 @@
 # 分阶段构建
+# 测试下来分阶段构建大小只少了30M，提示不大。
 FROM python:3.10-slim-bookworm AS base
 
 FROM base AS apt
