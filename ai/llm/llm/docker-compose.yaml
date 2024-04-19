@@ -1,0 +1,30 @@
+version: '3.7'
+
+services:
+  ka-llm:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: llm:v1
+    container_name: llm-container
+    ports:
+      - "8077:8077"
+    volumes:
+      - ./logs:/app/logs
+      - ./supervisord.conf:/app/supervisord.conf
+      - /data/models:/data/models
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail localhost:8077/v1/models | grep -q 'data' || exit 1" ]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 3s
+    restart: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]        
+
