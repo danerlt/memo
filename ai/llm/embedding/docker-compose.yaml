@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  embedding:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: embedding:v1
+    container_name: embedding-container
+    ports:
+      - "8811:8000"
+    volumes:
+      - ./logs:/app/logs
+      - ./run:/app/run
+      - /data/models:/data/models
+    environment:
+      CUDA_VISIBLE_DEVICES: 1
+      MODEL_NAME: m3e-base
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail localhost:8000/health | grep -q 'ok' || exit 1" ]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 3s
+    restart: always
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 2
+              capabilities: [gpu]        
+
