@@ -1,0 +1,25 @@
+version: '3.7'
+services:
+  ka-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: my-api:v1
+    container_name: my-api
+    ports:
+      - "5001:8000"
+    restart: always
+    privileged: true
+    env_file:
+      - api.env
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: [ "CMD-SHELL", "curl --silent --fail localhost:8000/health | grep -q 'ok' || exit 1" ]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 3s
+
+
+

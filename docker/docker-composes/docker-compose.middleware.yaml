@@ -1,0 +1,162 @@
+version: '3.7'
+services:
+  # postgres数据库.
+  db:
+    image: postgres:15-alpine
+    container_name: my-db
+    restart: always
+    environment:
+      # 数据库默认密码
+      POSTGRES_PASSWORD: MyPasswd123!!!
+      # 数据库名
+      POSTGRES_DB: my_db
+      # postgres data directory
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/db/data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready" ]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    ports:
+      - "35432:5432"
+
+  # redis缓存.
+  redis:
+    image: redis:6-alpine
+    container_name: my-redis
+    restart: always
+    volumes:
+      # Mount the redis data directory to the container.
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/redis/data:/data
+    # Set the redis password when startup redis server.
+    command: redis-server --requirepass MyPasswd123!!!
+    healthcheck:
+      test: [ "CMD", "redis-cli","ping" ]
+    ports:
+      - "36379:6379"
+
+  # milvus向量数据库依赖etcd
+  etcd:
+    container_name: my-milvus-etcd
+    image: quay.io/coreos/etcd:v3.5.5
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+      - ETCD_SNAPSHOT_COUNT=50000
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/etcd:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+    healthcheck:
+      test: [ "CMD", "etcdctl", "endpoint", "health" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # milvus向量数据库依赖minio
+  minio:
+    container_name: my-milvus-minio
+    image: minio/minio:RELEASE.2023-03-20T20-16-18Z
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: MyPasswd123!!!
+    ports:
+      - "39001:9001"
+      - "39000:9000"
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/minio:/minio_data
+    command: minio server /minio_data --console-address ":9001"
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9000/minio/health/live" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # milvus向量数据库
+  milvus-standalone:
+    container_name: my-milvus-standalone
+    image: milvusdb/milvus:v2.3.1
+    command: [ "milvus", "run", "standalone" ]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: minio:9000
+      common.security.authorizationEnabled: 'true'
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/milvus:/var/lib/milvus
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:9091/healthz" ]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "39530:19530"
+      - "39091:9091"
+    depends_on:
+      - "etcd"
+      - "minio"
+
+  # Qdrant 向量数据库
+  qdrant:
+    container_name: my-qdrant
+    image: qdrant/qdrant:v1.7.4
+    restart: always
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/qdrant:/qdrant/storage
+    environment:
+      QDRANT__API_KEY: 'MyPasswd123!!!'
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:6333/readyz" ]
+      interval: 30s
+      start_period: 90s
+      timeout: 20s
+      retries: 3
+    ports:
+      - "36333:6333"
+
+  # MongoDB 数据库
+  mongo:
+    container_name: my-mongo
+    image: mongo:latest
+    restart: always
+    volumes:
+      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/mongo:/data/db
+    command: --wiredTigerCacheSizeGB 8 --auth # 限制内存大小, 需要认证
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: MyPasswd123
+    healthcheck:
+      test: [ "CMD", "mongo", "--quiet", "127.0.0.1/test", "--eval", "'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)'" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    ports:
+      - "37017:27017"
+
+#  pg_vector:
+#    image: pgvector/pgvector:pg16
+#    container_name: ka-pg
+#    restart: always
+#    environment:
+#      # 数据库默认密码
+#      POSTGRES_PASSWORD: MyPasswd123!!!
+#      # 数据库名
+#      POSTGRES_DB: ka
+#      # postgres data directory
+#      PGDATA: /var/lib/postgresql/data/pgdata
+#    volumes:
+#      - ${DOCKER_VOLUME_DIRECTORY:-.}/volumes/pg_vector:/var/lib/postgresql/data
+#    healthcheck:
+#      test: [ "CMD", "pg_isready" ]
+#      interval: 1s
+#      timeout: 3s
+#      retries: 30
+#    ports:
+#      - "35433:5432"
+
+networks:
+  default:
+    name: my-middleware

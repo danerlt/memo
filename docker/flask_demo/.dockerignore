@@ -1,0 +1,14 @@
+.env
+*.env.*
+
+# Logs
+logs/
+*.log*
+
+# jetbrains
+.idea/
+.vscoce/
+
+# python cache
+*.pyc
+__pycache__/
